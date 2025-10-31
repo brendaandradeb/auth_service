@@ -3,8 +3,11 @@ from pydantic import BaseModel
 import base64
 import datetime
 import database
+import redis
 
 app = FastAPI(title="Microsserviço de Autenticação (Inseguro)")
+
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
 class SignupData(BaseModel):
     email: str
@@ -38,6 +41,10 @@ def extract_token_from_header(auth_header: str | None) -> str | None:
         return auth_header[len("SDWork "):].strip()
     return auth_header
 
+def check_rate_limit(user_id: int, limit: int = 5, window_seconds: int = 50):
+    key = f"rate_limit_{user_id}"
+    current = redis_client.get(key)
+    if current
 @app.post("/api/v1/auth/signup")
 def signup(data: SignupData):
     now = now_str()
